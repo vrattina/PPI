@@ -7,6 +7,8 @@ import csv #parse tsv
 import logging #log file
 import requests #to POST the sparql request in neXtProt API
 import urllib #to urlencode the sparql request
+import csv
+import json
 
 logging.basicConfig(format='%(asctime)s\t%(levelname)s\t%(message)s', filename='main.log', level=logging.DEBUG)
 
@@ -111,79 +113,88 @@ def inter_ac_propagation(one_isoform_file, propagated_ppi_output):
     identical_prot_dict = find_identical_proteins()
     #print identical_prot_dict
 
-    one_isoform_ppi = open(one_isoform_file, "r")
-    propagated_ppi_output = open(propagated_ppi_output, "w")
+    with open(one_isoform_file) as tsvfile:
+        reader = csv.DictReader(tsvfile, delimiter='\t')
 
-    header = one_isoform_ppi.readline().rstrip("\n")
-    header += "\tinterAC_propagation\n"
-    propagated_ppi_output.write(header)
+        propagated_ppi_output = open(propagated_ppi_output, "w")
 
-    every_ppi_list = []
-    for i in one_isoform_ppi.readlines():
-        i = i.rstrip("\n")
-        column = i.split("\t")
-        ppi_type = column[0]
-        interactor_AC1 = column[3]
-        interactor_name1 = column[4]
-        interactor_AC2 = column[5]
-        interactor_name2 = column[6]
+        header_list = reader.fieldnames
+        header_list.append("interAC_propagation")
+        header = "\t".join(str(elt) for elt in header_list)
+        header += "\n"
+        propagated_ppi_output.write(header)
 
-        mapping_seq1 = column[7]
-        isoform1 = column[8]
-        occ_start1 = column[9]
-        occ_stop1 = column[10]
-        occ_identity1 = column[11]
-        
-        mapping_seq2 = column[12]
-        isoform2 = column[13]
-        occ_start2 = column[14]
-        occ_stop2 = column[15]
-        occ_identity2 = column[16]
-
-        if isoform1 != "" and "-" not in isoform1:
-            isoform1 += "-1"
-
-        if isoform2 != "" and "-" not in isoform2:
-            isoform2 += "-1"
-
-        #first store the original ppi
-        every_ppi_list.append(i+"\tRaw\n")
-        #print i
-
-        #propagate PPi to protein with similar sequence
-        if ppi_type == "hh":
-            store_propagated_proteins(identical_prot_dict, i,\
-                                      interactor_AC1, interactor_name1,\
-                                      mapping_seq1, isoform1,\
-                                      occ_start1, occ_stop1, occ_identity1,\
-                                      every_ppi_list)
-
-            #if non homodimer write it for interactant2
-            if ( interactor_AC1 != interactor_AC2 ):
-                store_propagated_proteins(identical_prot_dict, i,\
-                                          interactor_AC2, interactor_name2,\
-                                          mapping_seq2, isoform2,\
-                                          occ_start2, occ_stop2, occ_identity2,\
-                                          every_ppi_list)
-        
-        elif ppi_type == "vh":
-            #if vh type only interactor_AC1 is the human protein
-            #it was decided to do not propagate viral protein
-            store_propagated_proteins(identical_prot_dict, i,\
-                                    interactor_AC1, interactor_name1,\
-                                      mapping_seq1, isoform1,\
-                                      occ_start1, occ_stop1, occ_identity1,\
-                                      every_ppi_list)
+        every_ppi_list = []
+        for ppi in reader:
+            ppi_type = ppi["ppi_type"]
+            interactor_AC1 = ppi["interactor1_accession"]
+            interactor_name1 = ppi["interactor1_name"]
+            interactor_AC2 = ppi["interactor2_accession"]
+            interactor_name2 = ppi["interactor2_name"]
             
-    ##some twin proteins are already repertoried by ENYO so no need to put them twice
-    #print every_ppi_list
-    every_ppi_list = list(set(every_ppi_list))
-    for i in every_ppi_list:
-        propagated_ppi_output.write(str(i))
+            mapping_seq1 = ppi["interactor1_mapping_sequence"]
+            isoform1 = ppi["interactor1_isoform_accession"]
+            occ_start1 = ppi["interactor1_occurrence_start"]
+            occ_stop1 = ppi["interactor1_occurrence_stop"]
+            occ_identity1 = ppi["interactor1_occurrence_identity"]
+    
+            mapping_seq2 = ppi["interactor2_mapping_sequence"]
+            isoform2 = ppi["interactor2_isoform_accession"]
+            occ_start2 = ppi["interactor2_occurrence_start"]
+            occ_stop2 = ppi["interactor2_occurrence_stop"]
+            occ_identity2 = ppi["interactor2_occurrence_identity"]
+        
+            full_line = ppi_type+"\t"+ppi["pmid"]+"\t"+ppi["psimi_id"]
+            full_line += "\t"+interactor_AC1+"\t"+interactor_name1
+            full_line += "\t"+interactor_AC2+"\t"+interactor_name2
+            full_line += "\t"+mapping_seq1+"\t"+ppi["interactor1_isoform_accession"]
+            full_line += "\t"+occ_start1+"\t"+occ_stop1+"\t"+occ_identity1
+            full_line += "\t"+mapping_seq2+"\t"+ppi["interactor2_isoform_accession"]
+            full_line += "\t"+occ_start2+"\t"+occ_stop2+"\t"+occ_identity2
+            full_line += "\t"+ppi["Uniprot_viral_species"]+"\t"+ppi["FTId"]+"\t"+ppi["Chain_name"]
 
-    propagated_ppi_output.close()
-    one_isoform_ppi.close()
-    logging.info("Identical proteins propagation ends")
+            if isoform1 != "" and "-" not in isoform1:
+                isoform1 += "-1"
+
+            if isoform2 != "" and "-" not in isoform2:
+                isoform2 += "-1"
+
+            #first store the original ppi
+            every_ppi_list.append(full_line+"\tRaw\n")
+
+            #propagate PPi to protein with similar sequence
+            if ppi_type == "hh":
+                store_propagated_proteins(identical_prot_dict, full_line,\
+                                          interactor_AC1, interactor_name1,\
+                                          mapping_seq1, isoform1,\
+                                          occ_start1, occ_stop1, occ_identity1,\
+                                          every_ppi_list)
+
+                #if non homodimer write it for interactant2
+                if ( interactor_AC1 != interactor_AC2 ):
+                    store_propagated_proteins(identical_prot_dict, full_line,\
+                                              interactor_AC2, interactor_name2,\
+                                              mapping_seq2, isoform2,\
+                                              occ_start2, occ_stop2, occ_identity2,\
+                                              every_ppi_list)
+                
+            elif ppi_type == "vh":
+                #if vh type only interactor_AC1 is the human protein
+                #it was decided to do not propagate viral protein
+                store_propagated_proteins(identical_prot_dict, full_line,\
+                                          interactor_AC1, interactor_name1,\
+                                          mapping_seq1, isoform1,\
+                                          occ_start1, occ_stop1, occ_identity1,\
+                                          every_ppi_list)
+            
+        ##some twin proteins are already repertoried by ENYO so no need to put them twice
+        #print every_ppi_list
+        every_ppi_list = list(set(every_ppi_list))
+        for i in every_ppi_list:
+            propagated_ppi_output.write(str(i))
+            
+        propagated_ppi_output.close()
+        logging.info("Identical proteins propagation ends")
 
 ####################
 # MAIN #############

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#AUTHOR: RATTINA Vimel - 2020/02/11 - SIB & Enyo Pharma
+#AUTHOR: RATTINA Vimel - 2020/02/24 - SIB & Enyo Pharma
 
 import sys #I/O files
 import os, errno #create folder
@@ -54,24 +54,40 @@ def find_identical_proteins():
             identical_prot_dict[identical_protein_AC1]["partners"] = []
             identical_prot_dict[identical_protein_AC1]["partners"].append(identical_protein_AC2)
             identical_prot_dict[identical_protein_AC1]["gene_name"] = identical_protein_name1
+            identical_prot_dict[identical_protein_AC1]["AC"] = identical_protein_AC1[:-2] #the identical protein AC without isoform information
 
     return identical_prot_dict
 
 
 ##Function storing the PPi for the twin protein (having the identical amino-acid sequence) with or without the interaction mapping information
 def store_propagated_proteins(identical_prot_dict, current_ppi, interactor_AC, interactor_name, mapping_seq, isoform, occ_start, occ_stop, occ_identity, output_list):
-    if ( identical_prot_dict.has_key(interactor_AC) ):
-        #if other human protein with identical sequence
-        if ( (isoform == "") or (isoform == interactor_AC) ):
-            #if the concerned isoform or no interaction mapping information, changes only the AC
-            for identical_prot in identical_prot_dict[interactor_AC]["partners"]:
+    for key in identical_prot_dict:
+        if key.startswith(interactor_AC): #avoid isoform specificity
+            if ( identical_prot_dict.has_key(isoform) ):
+                #if the concerned isoform or no interaction mapping information, changes only the AC
+                for identical_prot in identical_prot_dict[isoform]["partners"]:
+                    ppi_twin_protein = current_ppi
+                    ppi_twin_protein = ppi_twin_protein.replace(interactor_AC, identical_prot[:-2], 1) #first change the AC, first occurrence
+                    ppi_twin_protein = ppi_twin_protein.replace(interactor_AC+"-.", identical_prot, 1) #then change the isoform, second occurrence
+                    ppi_twin_protein = ppi_twin_protein.replace(interactor_name, identical_prot_dict[identical_prot]["gene_name"])
+                    ppi_twin_protein += "\t"+interactor_AC+"_to_"+identical_prot[:-2]
+                    #print ppi_twin_protein
+                    logging.warning(interactor_AC+" get propagated because it has identical amino-acid sequence than "+identical_prot)
+                    output_list.append(ppi_twin_protein+"\n")
+                
+    for value in identical_prot_dict.values():
+        #if there is no interaction mapping information and interactor_AC found in the dictionnary (has identical proteins)
+        if (isoform == "") and value["AC"] == interactor_AC:
+            for identical_prot in value["partners"]:
                 ppi_twin_protein = current_ppi
-                ppi_twin_protein = ppi_twin_protein.replace(interactor_AC, identical_prot)
-                ppi_twin_protein = ppi_twin_protein.replace(interactor_name, identical_prot_dict[identical_prot]["gene_name"])
-                ppi_twin_protein += "\t"+interactor_AC+"_to_"+identical_prot
+                ppi_twin_protein = ppi_twin_protein.replace(interactor_AC, identical_prot[:-2], 1) #first change the AC
+                ppi_twin_protein = ppi_twin_protein.replace(interactor_name, value["gene_name"])
+                ppi_twin_protein += "\t"+interactor_AC+"_to_"+identical_prot[:-2]
+                #print ppi_twin_protein
                 logging.warning(interactor_AC+" get propagated because it has identical amino-acid sequence than "+identical_prot)
                 output_list.append(ppi_twin_protein+"\n")
-                #print ppi_twin_protein
+
+
         # else:
         #     #if not the concerned isoform, save the PPi but not the interaction mapping information
         #     ppi_twin_protein = current_ppi
@@ -123,6 +139,12 @@ def inter_ac_propagation(one_isoform_file, propagated_ppi_output):
         occ_start2 = column[14]
         occ_stop2 = column[15]
         occ_identity2 = column[16]
+
+        if isoform1 != "" and "-" not in isoform1:
+            isoform1 += "-1"
+
+        if isoform2 != "" and "-" not in isoform2:
+            isoform2 += "-1"
 
         #first store the original ppi
         every_ppi_list.append(i+"\tRaw\n")

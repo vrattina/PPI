@@ -20,12 +20,16 @@ PREFIX context: <http://nextprot.org/rdf/context/>
 PREFIX interaction: <http://nextprot.org/rdf/interaction/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 select distinct ?identical_protein where {
-  ?entry :isoform / :sequence / :chain ?chain1.
-  ?entry :gene / :name ?genename1.
-  ?entry2 :isoform / :sequence / :chain ?chain2.
+  ?entry1 :isoform ?isoform1 .
+  ?isoform1 :sequence / :chain ?chain1.
+  ?entry1 :gene / :name ?genename1.
+  
+  ?entry2 :isoform ?isoform2.
+  ?isoform2 :sequence / :chain ?chain2.
   ?entry2 :gene / :name ?genename2.
-  filter ( (?chain1 = ?chain2) && (?entry != ?entry2))
-  bind(replace(str(?entry), "http://nextprot.org/rdf/entry/NX_", "") as ?AC1)
-  bind(replace(str(?entry2), "http://nextprot.org/rdf/entry/NX_", "") as ?AC2)
+  
+  filter ( (?chain1 = ?chain2) && (?isoform1 != ?isoform2))
+  bind(replace(str(?isoform1), "http://nextprot.org/rdf/isoform/NX_", "") as ?AC1)
+  bind(replace(str(?isoform2), "http://nextprot.org/rdf/isoform/NX_", "") as ?AC2)
   bind(concat(?AC1, ":", ?genename1," ", ?AC2, ":", ?genename2) as ?identical_protein)
 }

@@ -39,15 +39,11 @@ def find_identical_proteins():
     identical_prot_dict = {}
 
     for i in request_dict["results"]["bindings"]:
-        identical_proteins = i["identical_protein"]["value"].split(" ")
+        identical_protein_AC1 = i["AC1"]["value"] #sparql query column name
+        identical_protein_name1 = i["sameseq1"]["value"]
 
-        protein1 = identical_proteins[0]
-        identical_protein_AC1 = protein1.split(":")[0]
-        identical_protein_name1 = protein1.split(":")[1]
-
-        protein2 = identical_proteins[1]
-        identical_protein_AC2 = protein2.split(":")[0]
-        identical_protein_name2 = protein2.split(":")[1]
+        identical_protein_AC2 = i["AC2"]["value"]
+        identical_protein_name2 = i["sameseq2"]["value"]
         
         if identical_prot_dict.has_key(identical_protein_AC1):
             identical_prot_dict[identical_protein_AC1]["partners"].append(identical_protein_AC2)

@@ -12,6 +12,7 @@ from update_ac_uniprot_information import update_ac_uniprot_information #depende
 from classify_ppi import classify_ppi
 from select_one_isoform import select_one_isoform
 from inter_ac_propagation import inter_ac_propagation #dependency human_identical_proteins.sparql & neXtProt API
+from symmetric_interaction import symmetric_interaction
 from integration_formatting import integration_formatting
 from tsv_to_json import tsv_to_json
 
@@ -37,17 +38,20 @@ def main(ppi_in_json, flatten_ppi_tsv, YYYY_MM_enyo, YYYY_MM_nextprot, outputfol
     #update_ac_uniprot_information(flatten_ppi_tsv, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, VP_dict, HP_dict)
     
     raw_integrate_file = outputfile_integrate+"_raw"
-    classify_ppi(flatten_ppi_tsv, VP_dict, HP_dict, raw_integrate_file, outputfile_curate)
+    #classify_ppi(flatten_ppi_tsv, VP_dict, HP_dict, raw_integrate_file, outputfile_curate)
 
     one_isoform_file = outputfile_integrate+"_one_iso"
-    select_one_isoform(raw_integrate_file, one_isoform_file)
+    #select_one_isoform(raw_integrate_file, one_isoform_file)
 
     propagated_file = one_isoform_file+"_propagated"
     inter_ac_propagation(one_isoform_file, propagated_file)
 
+    symmetric_file = propagated_file+"_symmetric"
+    symmetric_interaction(propagated_file, symmetric_file)
+
     ppi_output = "ppi_"+outputfile_integrate
     intmap_output = "intmap_"+outputfile_integrate
-    integration_formatting(propagated_file, ppi_output, intmap_output)
+    integration_formatting(symmetric_file, ppi_output, intmap_output)
 
     ppi_json = ppi_output+".json"
     intmap_json = intmap_output+".json"

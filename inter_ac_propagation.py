@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#AUTHOR: RATTINA Vimel - 2020/02/24 - SIB & Enyo Pharma
+#AUTHOR: RATTINA Vimel - 2020/03/03 - SIB & Enyo Pharma
 
 import sys #I/O files
 import os, errno #create folder
@@ -85,7 +85,6 @@ def store_propagated_proteins(identical_prot_dict, current_ppi, interactor_AC, i
                 logging.warning(interactor_AC+" get propagated because it has identical amino-acid sequence than "+identical_prot)
                 output_list.append(ppi_twin_protein+"\n")
 
-
         # else:
         #     #if not the concerned isoform, save the PPi but not the interaction mapping information
         #     ppi_twin_protein = current_ppi
@@ -140,14 +139,20 @@ def inter_ac_propagation(one_isoform_file, propagated_ppi_output):
             occ_stop2 = ppi["interactor2_occurrence_stop"]
             occ_identity2 = ppi["interactor2_occurrence_identity"]
         
-            full_line = ppi_type+"\t"+ppi["pmid"]+"\t"+ppi["psimi_id"]
-            full_line += "\t"+interactor_AC1+"\t"+interactor_name1
-            full_line += "\t"+interactor_AC2+"\t"+interactor_name2
-            full_line += "\t"+mapping_seq1+"\t"+ppi["interactor1_isoform_accession"]
-            full_line += "\t"+occ_start1+"\t"+occ_stop1+"\t"+occ_identity1
-            full_line += "\t"+mapping_seq2+"\t"+ppi["interactor2_isoform_accession"]
-            full_line += "\t"+occ_start2+"\t"+occ_stop2+"\t"+occ_identity2
-            full_line += "\t"+ppi["Uniprot_viral_species"]+"\t"+ppi["FTId"]+"\t"+ppi["Chain_name"]
+            description = ppi_type+"\t"+ppi["pmid"]+"\t"+ppi["psimi_id"]
+
+            interactor1_part1 = "\t"+interactor_AC1+"\t"+interactor_name1
+            interactor2_part1 = "\t"+interactor_AC2+"\t"+interactor_name2
+
+            interactor1_part2 = "\t"+mapping_seq1+"\t"+ppi["interactor1_isoform_accession"]
+            interactor1_part2 += "\t"+occ_start1+"\t"+occ_stop1+"\t"+occ_identity1
+            interactor2_part2 = "\t"+mapping_seq2+"\t"+ppi["interactor2_isoform_accession"]
+            interactor2_part2 += "\t"+occ_start2+"\t"+occ_stop2+"\t"+occ_identity2
+
+            viral_info = "\t"+ppi["Uniprot_viral_species"]+"\t"+ppi["FTId"]+"\t"+ppi["Chain_name"]
+
+            full_line = description+interactor1_part1+interactor2_part1
+            full_line += interactor1_part2+interactor2_part2+viral_info
 
             if isoform1 != "" and "-" not in isoform1:
                 isoform1 += "-1"

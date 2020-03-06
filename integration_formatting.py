@@ -37,6 +37,7 @@ def store_ppi(ppi, ppi_list):
     output_line += "\tbinary-interaction"
     #output_line += "\tannotation_id_whatodo"+str(ppi_number)
     output_line += "\tENYO"
+    output_line += "\tcurated"
     output_line += "\tPROTEIN"
     output_line += "\tNX_"+ppi["interactor1_accession"]
     output_line += "\tECO:0000353"
@@ -137,15 +138,16 @@ def integration_formatting(propagated_ppi_file, ppi_output, interaction_mapping_
             if ( (ppi["interactor1_isoform_accession"] != "") or (ppi["interactor2_isoform_accession"] != "") ):
                 store_interaction_mapping(ppi, intmap_list)
 
+        ##write
         ppi_list = list(set(ppi_list)) ##save one copy of the duplicated PPi
+        cpt = 0
         for uniq_ppi in ppi_list:
-            ppi_result.write(uniq_ppi+"\n")
+            cpt += 1
+            ppi_result.write(uniq_ppi+"\t"+str(cpt)+"\n")
 
         intmap_list = list(set(intmap_list)) ##save one copy of homodimer self-interaction (interactor1 and interactor2 have both the same intmap region)
-        cpt = 0
         for uniq_ppi in intmap_list:
-            cpt+=1
-            intmap_result.write(uniq_ppi+str(cpt)+"\n")
+            intmap_result.write(uniq_ppi+"\n")
         
     ppi_result.close()
     intmap_result.close()

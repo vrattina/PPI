@@ -92,8 +92,8 @@ def integration_formatting(propagated_ppi_file, ppi_output, interaction_mapping_
     #extra values
     ppi_header += "\tannotation_category"
     #ppi_header += "\tannotation_id"
-    ppi_header += "\tassigment_method"
     ppi_header += "\tassigned_by"
+    ppi_header += "\tassigment_method"
     ppi_header += "\tbiological_object_type"
     ppi_header += "\tentry_accession"
     ppi_header += "\tevidence_code"

@@ -165,7 +165,8 @@ def integration_formatting():
             previsoform = prevkey_list[10]
 
             prevkey = prevpmid+"_"+prevint1+"_"+prevint2
-            multiple_psimi = prevpsimi
+            multiple_psimi = []
+            multiple_psimi.append(prevpsimi)
             #print(prevkey)
 
             for uniq_ppi in ppi_list[1:]: ##every other element than the first element from the list
@@ -183,7 +184,9 @@ def integration_formatting():
 
                 if ( prevkey != mykey):
                     cpt += 1
-                    myppi = prevpmid+"\t"+multiple_psimi+"\t"+prevint1+"\t"+prevname1+"\t"+prevint2+"\t"+prevname2
+                    multiple_psimi = list(set(multiple_psimi))
+                    multiple_psimi_str = ', '.join(map(str, multiple_psimi)) 
+                    myppi = prevpmid+"\t"+multiple_psimi_str+"\t"+prevint1+"\t"+prevname1+"\t"+prevint2+"\t"+prevname2
                     myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myisoform
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
                     ppi_result.write(myppi+"\t"+str(cpt)+"\n")
@@ -197,15 +200,18 @@ def integration_formatting():
                     previsoform = myisoform
 
                     prevkey = mykey
-                    multiple_psimi = mypsimi
+                    multiple_psimi = []
+                    multiple_psimi.append(mypsimi)
                     
                 else:
-                    multiple_psimi += ", "+mypsimi #one ppi one pmid but several psimi
+                    multiple_psimi.append(mypsimi) #one ppi one pmid but several psimi
 
                 ##if last element of the list write it anyway
                 if uniq_ppi == ppi_list[-1]:
                     cpt += 1
-                    myppi = mypmid+"\t"+multiple_psimi+"\t"+myint1+"\t"+myname1
+                    multiple_psimi = list(set(multiple_psimi))
+                    multiple_psimi_str = ', '.join(map(str, multiple_psimi))
+                    myppi = mypmid+"\t"+multiple_psimi_str+"\t"+myint1+"\t"+myname1
                     myppi += "\t"+myint2+"\t"+myname2
                     myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myisoform
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
@@ -240,7 +246,8 @@ def integration_formatting():
             prevoccidentity = prevkey_list[10]
         
             prevkey = prevpmid+"_"+prevint1+"_"+prevint2+"_"+previsoform+"_"+prevmapseq
-            multiple_psimi = prevpsimi
+            multiple_psimi = []
+            multiple_psimi.append(prevpsimi)
             #print(prevkey)
 
             for uniq_intmap in intmap_list[1:]:
@@ -260,7 +267,9 @@ def integration_formatting():
                 #print(mykey)
 
                 if ( prevkey != mykey):
-                    myintmap = prevpmid+"\t"+multiple_psimi+"\t"+prevint1+"\t"+prevname1
+                    multiple_psimi = list(set(multiple_psimi))
+                    multiple_psimi_str = ', '.join(map(str, multiple_psimi))
+                    myintmap = prevpmid+"\t"+multiple_psimi_str+"\t"+prevint1+"\t"+prevname1
                     myintmap += "\t"+prevint2+"\t"+prevname2+"\t"+prevmapseq+"\t"+previsoform
                     myintmap += "\t"+prevoccstart+"\t"+prevoccstop+"\t"+prevoccidentity
                     intmap_result.write(myintmap+"\n")
@@ -278,13 +287,16 @@ def integration_formatting():
                     prevoccidentity = myoccidentity
                     
                     prevkey = mykey
-                    multiple_psimi = mypsimi
+                    multiple_psimi = []
+                    multiple_psimi.append(mypsimi)
 
                 else:
-                    multiple_psimi += ", "+mypsimi
+                    multiple_psimi.append(mypsimi)
 
                 if uniq_intmap == intmap_list[-1]:
-                    myintmap = mypmid+"\t"+multiple_psimi+"\t"+myint1+"\t"+myname1
+                    multiple_psimi = list(set(multiple_psimi))
+                    multiple_psimi_str = ', '.join(map(str, multiple_psimi))
+                    myintmap = mypmid+"\t"+multiple_psimi_str+"\t"+myint1+"\t"+myname1
                     myintmap += "\t"+myint2+"\t"+myname2+"\t"+mymapseq+"\t"+myisoform
                     myintmap += "\t"+myoccstart+"\t"+myoccstop+"\t"+myoccidentity
                     intmap_result.write(myintmap+"\n")

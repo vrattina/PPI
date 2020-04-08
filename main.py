@@ -13,7 +13,7 @@ from classify_ppi import classify_ppi
 from select_one_isoform import select_one_isoform
 from inter_ac_propagation import inter_ac_propagation #dependency human_identical_proteins.sparql & neXtProt API
 from symmetric_interaction import symmetric_interaction
-from integration_formatting import integration_formatting
+from subprocess import call #integration_formatting is in python3
 from tsv_to_json import tsv_to_json
 
 ##The aim of this script is to:
@@ -44,14 +44,15 @@ def main(ppi_in_json, flatten_ppi_tsv, YYYY_MM_enyo, YYYY_MM_nextprot, outputfol
     #select_one_isoform(raw_integrate_file, one_isoform_file)
 
     propagated_file = one_isoform_file+"_propagated"
-    inter_ac_propagation(one_isoform_file, propagated_file)
+    #inter_ac_propagation(one_isoform_file, propagated_file)
 
     symmetric_file = propagated_file+"_symmetric"
-    symmetric_interaction(propagated_file, symmetric_file)
+    #symmetric_interaction(propagated_file, symmetric_file)
 
     ppi_output = "ppi_"+outputfile_integrate
     intmap_output = "intmap_"+outputfile_integrate
-    integration_formatting(symmetric_file, ppi_output, intmap_output)
+    exit_code = call("./integration_formatting.py " + symmetric_file + " " + ppi_output + " " + intmap_output + " psimi_merged", shell=True)
+    #####integration_formatting(symmetric_file, ppi_output, intmap_output, "psimi_merged")
 
     ppi_json = ppi_output+".json"
     intmap_json = intmap_output+".json"
@@ -66,4 +67,3 @@ if __name__ == "__main__":
 
 #To improve:
 #if AC replaced by a new AC due to trEmbl to SwissProt --> notify it
-

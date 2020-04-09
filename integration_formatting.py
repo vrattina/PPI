@@ -173,12 +173,11 @@ def integration_formatting():
                 key_list = uniq_ppi.split("\t")
                 mypmid = key_list[0]
                 mypsimi = key_list[1]
-                myint1 = key_list[2]
+                myint1 = key_list[2] #already symmetric in the file so int2 will be here also
                 myname1 = key_list[3]
                 myint2 = key_list[4]
                 myname2 = key_list[5]
-                myisoform = key_list[10]
-
+                
                 mykey = mypmid+"_"+myint1+"_"+myint2
                 #print(mykey)
 
@@ -187,7 +186,7 @@ def integration_formatting():
                     multiple_psimi = list(set(multiple_psimi))
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi)) 
                     myppi = prevpmid+"\t"+multiple_psimi_str+"\t"+prevint1+"\t"+prevname1+"\t"+prevint2+"\t"+prevname2
-                    myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myisoform
+                    myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+prevint1
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
                     ppi_result.write(myppi+"\t"+str(cpt)+"\n")
                     
@@ -197,8 +196,7 @@ def integration_formatting():
                     prevname1 =myname1
                     prevint2 = myint2
                     prevname2 = myname2
-                    previsoform = myisoform
-
+                    
                     prevkey = mykey
                     multiple_psimi = []
                     multiple_psimi.append(mypsimi)
@@ -213,7 +211,7 @@ def integration_formatting():
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi))
                     myppi = mypmid+"\t"+multiple_psimi_str+"\t"+myint1+"\t"+myname1
                     myppi += "\t"+myint2+"\t"+myname2
-                    myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myisoform
+                    myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myint1
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
                     ppi_result.write(myppi+"\t"+str(cpt)+"\n")
 

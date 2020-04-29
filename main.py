@@ -6,8 +6,9 @@ import sys #I/O files
 if len(sys.argv) < 8:
     sys.exit('Usage: %s <ppi_in_json> <flatten_ppi_tsv> <YYYY_MM_enyo> <YYYY_MM_nextprot> <outputfolder> <outputfile_integrate> <outputfile_curate>\n<ppi_in_json>:\n<flatten_ppi_tsv>:\n<YYYY_MM_enyo>:\n<YYYY_MM_nextprot>:\n<outputfolder>\n<outputfile_integrate>:\n<outputfile_curate>:' % sys.argv[0])
 
-from download_ac_in_uniprot_versions import download_ac_in_uniprot_versions
 from flatten_enyo_json import flatten_enyo_json
+from download_ac_in_uniprot_versions import download_ac_in_uniprot_versions
+from find_canonical_isoform import find_canonical_isoform
 from update_ac_uniprot_information import update_ac_uniprot_information #dependency varsplic.pl & swissknife
 from classify_ppi import classify_ppi
 from select_one_isoform import select_one_isoform
@@ -28,30 +29,34 @@ from tsv_to_json import tsv_to_json
 
 def main(ppi_in_json, flatten_ppi_tsv, YYYY_MM_enyo, YYYY_MM_nextprot, outputfolder, outputfile_integrate, outputfile_curate):
 
-    #flatten_enyo_json(ppi_in_json, flatten_ppi_tsv)
+    flatten_enyo_json(ppi_in_json, flatten_ppi_tsv)
     
     #download_ac_in_uniprot_versions(flatten_ppi_tsv, YYYY_MM_enyo, outputfolder, "True")
     #download_ac_in_uniprot_versions(flatten_ppi_tsv, YYYY_MM_nextprot, outputfolder, "False") 
 
+    YYYY_MM_enyo_folder = outputfolder + "/" + YYYY_MM_enyo
+    flatten_ppi_specified_iso_tsv = "specified_iso_"+flatten_ppi_tsv
+    find_canonical_isoform(flatten_ppi_tsv, YYYY_MM_enyo_folder, flatten_ppi_specified_iso_tsv)
+
     VP_dict = "VPdict_"+flatten_ppi_tsv.replace(".tsv",".dict")
     HP_dict = "HPdict_"+flatten_ppi_tsv.replace(".tsv",".dict")
-    #update_ac_uniprot_information(flatten_ppi_tsv, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, VP_dict, HP_dict)
+    update_ac_uniprot_information(flatten_ppi_specified_iso_tsv, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, VP_dict, HP_dict)
     
     raw_integrate_file = outputfile_integrate+"_raw"
-    #classify_ppi(flatten_ppi_tsv, VP_dict, HP_dict, raw_integrate_file, outputfile_curate)
+    classify_ppi(flatten_ppi_specified_iso_tsv, VP_dict, HP_dict, raw_integrate_file, outputfile_curate)
 
     one_isoform_file = outputfile_integrate+"_one_iso"
-    #select_one_isoform(raw_integrate_file, one_isoform_file)
+    select_one_isoform(raw_integrate_file, one_isoform_file)
 
     propagated_file = one_isoform_file+"_propagated"
-    #inter_ac_propagation(one_isoform_file, propagated_file)
+    inter_ac_propagation(one_isoform_file, propagated_file)
 
     symmetric_file = propagated_file+"_symmetric"
-    #symmetric_interaction(propagated_file, symmetric_file)
+    symmetric_interaction(propagated_file, symmetric_file)
 
     ppi_output = "ppi_"+outputfile_integrate
     intmap_output = "intmap_"+outputfile_integrate
-    exit_code = call("./integration_formatting.py " + symmetric_file + " " + ppi_output + " " + intmap_output + " psimi_merged", shell=True)
+    exit_code = call("./integration_formatting.py " + symmetric_file + " " + ppi_output + " " + intmap_output + " psimi_unmerged", shell=True)
     #####integration_formatting(symmetric_file, ppi_output, intmap_output, "psimi_merged")
 
     ppi_json = ppi_output+".json"
@@ -64,6 +69,7 @@ if __name__ == "__main__":
 
 #./main.py vinland-vh-hh-ppi-sib vinland-vh-hh-ppi-sib.tsv 2019_01 2019_11 vh_hh_results vh_hh_integre.tsv vh_hh_cure.tsv &> vh_hh.log
 #./main.py vinland-hh-2020-01-22 vinland-hh-2020-01-22.tsv 2019_01 2019_11 hh-2020-01-22_results/ integre_vinland-hh-2020-01-22.tsv cure_vinland-hh-2020-01-22.tsv $> hh.log 
+#./main.py vinland-hh-2020-01-22 vinland-hh-2020-01-22.tsv 2019_01 2020_02 hh-2020-04-22_results/ integre_vinland-hh-2020-01-22 cure_vinland-hh-2020-01-22 $> hh-2020-04-22.log
 
 #To improve:
 #if AC replaced by a new AC due to trEmbl to SwissProt --> notify it

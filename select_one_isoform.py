@@ -64,60 +64,132 @@ def select_one_isoform(raw_integrate_file, one_isoform_output):
         ##variable initialization
         prev_intmap_interactor1 = first_ppi["interactor1_mapping_sequence"]
         prev_iso_interactor1 = first_ppi["interactor1_isoform_accession"]
-        
+        prev_occstart_interactor1 = first_ppi["interactor1_occurrence_start"]
+        prev_occstop_interactor1 = first_ppi["interactor1_occurrence_stop"]
+
         prev_intmap_interactor2 = first_ppi["interactor2_mapping_sequence"]
         prev_iso_interactor2 = first_ppi["interactor2_isoform_accession"]
-        
+        prev_occstart_interactor2 = first_ppi["interactor2_occurrence_start"]
+        prev_occstop_interactor2 = first_ppi["interactor2_occurrence_stop"]
+    
         prev_stableid = first_ppi["stable_id"]
         prev_interactor1 = first_ppi["interactor1_accession"]
         prev_interactor2 = first_ppi["interactor2_accession"] 
-
+        print prev_intmap_interactor1+"\t"+prev_iso_interactor1+"\t"+prev_occstart_interactor1+"\t"+prev_occstop_interactor1
         for ppi in reader:
+
             ##if there is no interaction mapping or if the stable id is different (so at least one interactor, pmid or psi-mi)
-            ##can update the previous values and write the result            
+            ##can update the previous values and write the result
             if ( (ppi["interactor1_isoform_accession"] == "") and (ppi["interactor2_isoform_accession"] == "") ) or ( ppi["stable_id"] != prev_stableid ):
+
+                output_writter(ppi, output_file)
+
                 prev_stableid = ppi["stable_id"]
                 prev_interactor1 = ppi["interactor1_accession"]
                 prev_interactor2 = ppi["interactor2_accession"]
 
                 prev_intmap_interactor1 = ppi["interactor1_mapping_sequence"]
                 prev_iso_interactor1 = ppi["interactor1_isoform_accession"]
+                prev_occstart_interactor1 = ppi["interactor1_occurrence_start"]
+                prev_occstop_interactor1 = ppi["interactor1_occurrence_stop"]
         
                 prev_intmap_interactor2 = ppi["interactor2_mapping_sequence"]
                 prev_iso_interactor2 = ppi["interactor2_isoform_accession"]
-                output_writter(ppi, output_file)
+                prev_occstart_interactor2 = ppi["interactor2_occurrence_start"]
+                prev_occstop_interactor2 = ppi["interactor2_occurrence_stop"]
+
                 continue ##continue permit to ignore the remaining code and go to the next iterative loop
 
-            ##knowing that the interaction mapping are ordered by canonical to alternative isoform, if the previous is the canonical do not write the alternative isoform
-            ##not in permit to select only the canonical isoform or the first alternative isoform
-            ##if we are here in the code, the both interaction mapping are not empty, check if interactor isoform 1 is not empty otherwise write nothing
-            if ( prev_iso_interactor1 not in ppi["interactor1_isoform_accession"] ) and ( ppi["interactor1_isoform_accession"] != "" ) and ( ppi["interactor1_mapping_sequence"] == prev_intmap_interactor1 ):
+            ##if there is an interaction mapping in one interactant, the mapping sequence is identical but not found in the same position (different annotation)
+            ##can update the previous values and write the result
+            if ( (prev_iso_interactor1 == ppi["interactor1_isoform_accession"]) \
+                 and (ppi["interactor1_isoform_accession"] != "") \
+                 and ( ppi["interactor1_mapping_sequence"] == prev_intmap_interactor1 ) \
+                 and ( ppi["interactor1_occurrence_start"] != prev_occstart_interactor1 ) \
+                 and ( ppi["interactor1_occurrence_stop"] != prev_occstop_interactor1 ) ) \
+                or \
+                ( (prev_iso_interactor2 == ppi["interactor2_isoform_accession"]) \
+                  and (ppi["interactor2_isoform_accession"] != "") \
+                  and ( ppi["interactor2_mapping_sequence"] == prev_intmap_interactor2 ) \
+                  and ( ppi["interactor2_occurrence_start"] != prev_occstart_interactor2 ) \
+                  and ( ppi["interactor2_occurrence_stop"] != prev_occstop_interactor2 ) ) :
+
+                output_writter(ppi, output_file)
+
                 prev_stableid = ppi["stable_id"]
                 prev_interactor1 = ppi["interactor1_accession"]
                 prev_interactor2 = ppi["interactor2_accession"]
-            ##if mapping not empty and interaction mapping sequence is different from the previous one, write
-            elif ( ppi["interactor1_mapping_sequence"] != prev_intmap_interactor1 ):
-                output_writter(ppi, output_file)
+
                 prev_intmap_interactor1 = ppi["interactor1_mapping_sequence"]
                 prev_iso_interactor1 = ppi["interactor1_isoform_accession"]
+                prev_occstart_interactor1 = ppi["interactor1_occurrence_start"]
+                prev_occstop_interactor1 = ppi["interactor1_occurrence_stop"]
+        
+                prev_intmap_interactor2 = ppi["interactor2_mapping_sequence"]
+                prev_iso_interactor2 = ppi["interactor2_isoform_accession"]
+                prev_occstart_interactor2 = ppi["interactor2_occurrence_start"]
+                prev_occstop_interactor2 = ppi["interactor2_occurrence_stop"]
+
+                continue ##continue permit to ignore the remaining code and go to the next iterative loop
+                
+            ##knowing that the interaction mapping are ordered by canonical to alternative isoform, if the previous is the canonical do not write the alternative isoform
+            ##not in permit to select only the canonical isoform or the first alternative isoform
+            ##if we are here in the code, the both interaction mapping are not empty, check if interactor isoform 1 is not empty otherwise write nothing
+            prev_AC1 = ""
+            if prev_iso_interactor1 != "":
+                prev_AC1 = prev_iso_interactor1.split("-")[0]
+
+            if ( prev_AC1 not in ppi["interactor1_isoform_accession"] ) \
+               and ( ppi["interactor1_isoform_accession"] != "" ) \
+               and ( ppi["interactor1_mapping_sequence"] == prev_intmap_interactor1 ):
+
+                prev_stableid = ppi["stable_id"]
+                prev_interactor1 = ppi["interactor1_accession"]
+                prev_interactor2 = ppi["interactor2_accession"]
+
+            ##if isoform/mapping not empty and interaction mapping sequence is different from the previous one, write
+            elif ( ppi["interactor1_mapping_sequence"] != prev_intmap_interactor1 ):
+
+                output_writter(ppi, output_file)
+
+                prev_intmap_interactor1 = ppi["interactor1_mapping_sequence"]
+                prev_iso_interactor1 = ppi["interactor1_isoform_accession"]
+                prev_occstart_interactor1 = ppi["interactor1_occurrence_start"]
+                prev_occstop_interactor1 = ppi["interactor1_occurrence_stop"]
             
                 prev_intmap_interactor2 = ppi["interactor2_mapping_sequence"]
                 prev_iso_interactor2 = ppi["interactor2_isoform_accession"]
+                prev_occstart_interactor2 = ppi["interactor2_occurrence_start"]
+                prev_occstop_interactor2 = ppi["interactor2_occurrence_stop"]
+
                 continue
 
             ##same for interactor2
-            if ( prev_iso_interactor2 not in ppi["interactor2_isoform_accession"] ) and ( ppi["interactor2_isoform_accession"] != "" ) and ( ppi["interactor2_mapping_sequence"] == prev_intmap_interactor2 ):
+            prev_AC2 = ""
+            if prev_iso_interactor1 != "":
+                prev_AC2 = prev_iso_interactor1.split("-")[0]
+
+            if ( prev_AC2 not in ppi["interactor2_isoform_accession"] ) \
+               and ( ppi["interactor2_isoform_accession"] != "" ) \
+               and ( ppi["interactor2_mapping_sequence"] == prev_intmap_interactor2 ):
                 prev_stableid = ppi["stable_id"]
                 prev_interactor1 = ppi["interactor1_accession"]
                 prev_interactor2 = ppi["interactor2_accession"]  
 
             elif( ppi["interactor2_mapping_sequence"] != prev_intmap_interactor2 ):
+
                 output_writter(ppi, output_file)
                 prev_intmap_interactor1 = ppi["interactor1_mapping_sequence"]
                 prev_iso_interactor1 = ppi["interactor1_isoform_accession"]
+                prev_occstart_interactor1 = ppi["interactor1_occurrence_start"]
+                prev_occstop_interactor1 = ppi["interactor1_occurrence_stop"]
+
             
                 prev_intmap_interactor2 = ppi["interactor2_mapping_sequence"]
                 prev_iso_interactor2 = ppi["interactor2_isoform_accession"]
+                prev_occstart_interactor2 = ppi["interactor2_occurrence_start"]
+                prev_occstop_interactor2 = ppi["interactor2_occurrence_stop"]
+
                 continue
     
     output_file.close()

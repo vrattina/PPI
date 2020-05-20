@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2019/11/28 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -61,7 +60,7 @@ def changes_to_cure(ppi, interactor1_ID, interactor2_ID, HP_dict, HorV_P_dict, o
 
         ##if changes repertoried in HP, print the pmid URL, gene name and sequence from the two UniProt versions
         if ( (HP_dict[interactor1_ID]["Genename_changes"] == "yes") or (HP_dict[interactor1_ID]["Sequence_changes"] == "yes")):
-            print interactor1_ID+"\tchanges"
+            print(interactor1_ID+"\tchanges")
             debug = ppi["ppi_type"]+"\t"+ppi["stable_id"]+"\thttps://www.ncbi.nlm.nih.gov/pubmed/"+ppi["pmid"]
             debug += "\t"+ppi["interactor1_accession"]+"\t"+ppi["interactor1_name"]
             debug += "\t"+HP_dict[interactor1_ID]["Genename_changes"]+"\t"+HP_dict[interactor1_ID]["Sequence_changes"]
@@ -73,7 +72,7 @@ def changes_to_cure(ppi, interactor1_ID, interactor2_ID, HP_dict, HorV_P_dict, o
 
         ##If changes repertoried in interactor2 so VP or HP depending on the PPi type
         if ( (HorV_P_dict[interactor2_ID]["Genename_changes"] == "yes") or (HorV_P_dict[interactor2_ID]["Sequence_changes"] == "yes")):
-            print interactor2_ID+"\tchanges"
+            print(interactor2_ID+"\tchanges")
             debug = ppi["ppi_type"]+"\t"+ppi["stable_id"]+"\thttps://www.ncbi.nlm.nih.gov/pubmed/"+ppi["pmid"]
             debug += "\t"+ppi["interactor2_accession"]+"\t"+ppi["interactor2_name"]
             debug += "\t"+HorV_P_dict[interactor2_ID]["Genename_changes"]+"\t"+HorV_P_dict[interactor2_ID]["Sequence_changes"]
@@ -94,7 +93,7 @@ def no_information(ppi, interactor1_ID, interactor2_ID, HP_dict, HorV_P_dict, ou
     ##if Genename_changes key does not exist, a problem occurs during download step
     ##if no changes in HP AC
     if ("Genename_changes" not in HP_dict[interactor1_ID]):
-        print interactor1_ID+"\tdoes not exist"
+        print(interactor1_ID+"\tdoes not exist")
         debug = ppi["ppi_type"]+"\t"+ppi["stable_id"]+"\thttps://www.ncbi.nlm.nih.gov/pubmed/"+ppi["pmid"]
         debug += "\t"+ppi["interactor1_accession"]+"\t"+ppi["interactor1_name"]
         debug += "\tyes\tyes\tNone\tNone\tNone\tNone" ##no gene name and sequence so put yes for both changes and None because no data were retrieved
@@ -103,7 +102,7 @@ def no_information(ppi, interactor1_ID, interactor2_ID, HP_dict, HorV_P_dict, ou
 
     ##If no changes in interactor2 so VP AC or HP AC
     if ("Genename_changes" not in HorV_P_dict[interactor2_ID]):
-        print interactor2_ID+"\tdoes not exist"
+        print(interactor2_ID+"\tdoes not exist")
         debug = ppi["ppi_type"]+"\t"+ppi["stable_id"]+"\thttps://www.ncbi.nlm.nih.gov/pubmed/"+ppi["pmid"]
         debug += "\t"+ppi["interactor2_accession"]+"\t"+ppi["interactor2_name"]
         debug += "\tyes\tyes\tNone\tNone\tNone\tNone"
@@ -121,10 +120,10 @@ def classify_ppi(flatfile, VP_dict_file, HP_dict_file, outputfile_raw_integrate,
     output_sib = open(outputfile_raw_integrate,"w") 
     output_cure = open(outputfile_recurate,"w")
 
-    with open(VP_dict_file, "r") as viral_file:
+    with open(VP_dict_file, "rb") as viral_file:
         VP_dict = pickle.loads(viral_file.read())
 
-    with open(HP_dict_file, "r") as human_file:
+    with open(HP_dict_file, "rb") as human_file:
         HP_dict = pickle.loads(human_file.read())
     
     ##write the header in both output files

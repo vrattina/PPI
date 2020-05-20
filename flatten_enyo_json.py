@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2020/01/31 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -43,6 +42,7 @@ def flatten_one_mapping(ppi, interactor, common_core, outfile):
 def flatten_enyo_json(jsonfile, outputfile):
     
     logging.info("Converting the ENYO PPi file with several json's into a flat file")
+
 
     jfile = open(jsonfile, 'r')
     outfile = open(outputfile, "w")

@@ -1,4 +1,3 @@
-#!/usr/bin/python3.6
 #AUTHOR: RATTINA Vimel - 2020/04/02 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -63,16 +62,35 @@ def store_ppi(ppi, ppi_list):
 ##Function to store the interaction mapping information
 def store_interaction_mapping(ppi, intmap_list):
     output_line = ppi["pmid"]+"\t"+ppi["psimi_id"]
-    output_line += "\tNX_"+ppi["interactor1_accession"]+"\t"+ppi["interactor1_name"]
-    output_line += "\tNX_"+ppi["interactor2_accession"]+"\t"+ppi["interactor2_name"]
-
+    entry_id = ""
     if (ppi["interactor1_isoform_accession"] != ""):
-        output_line += "\t"+ppi["interactor1_mapping_sequence"]+"\t"+ppi["interactor1_isoform_accession"]
+        output_line += "\tNX_"+ppi["interactor1_accession"]+"\t"+ppi["interactor1_name"]
+        output_line += "\tNX_"+ppi["interactor2_accession"]+"\t"+ppi["interactor2_name"]
+
+        output_line += "\t"+ppi["interactor1_mapping_sequence"]+"\tNX_"+ppi["interactor1_isoform_accession"]
         output_line += "\t"+ppi["interactor1_occurrence_start"]+"\t"+ppi["interactor1_occurrence_stop"]+"\t"+ppi["interactor1_occurrence_identity"]
         
-    elif (ppi["interactor2_isoform_accession"] != ""):
-        output_line += "\t"+ppi["interactor2_mapping_sequence"]+"\t"+ppi["interactor2_isoform_accession"]
+        entry_id = "NX_"+ppi["interactor1_isoform_accession"].split("-")[0]
+
+    elif (ppi["interactor2_isoform_accession"] != ""): #interactor2 become nextprot
+        output_line += "\tNX_"+ppi["interactor2_accession"]+"\t"+ppi["interactor2_name"]
+        output_line += "\tNX_"+ppi["interactor1_accession"]+"\t"+ppi["interactor1_name"]
+        
+        output_line += "\t"+ppi["interactor2_mapping_sequence"]+"\tNX_"+ppi["interactor2_isoform_accession"]
         output_line += "\t"+ppi["interactor2_occurrence_start"]+"\t"+ppi["interactor2_occurrence_stop"]+"\t"+ppi["interactor2_occurrence_identity"]
+
+        entry_id += "NX_"+ppi["interactor2_isoform_accession"].split("-")[0]
+
+    output_line += "\tinteraction-mapping"
+    output_line += "\tENYO"
+    output_line += "\tcurated"
+    output_line += "\tPROTEIN"
+    output_line += "\t"+entry_id
+    output_line += "\tECO:0000353"
+    output_line += "\tGOLD"
+    output_line += "\tPubMed"
+    output_line += "\tpublication"
+    output_line += "\tENYO"
 
     ##for VH-PPI modify here
     # if (ppi["ppi_type"] == "vh"):
@@ -115,11 +133,26 @@ def integration_formatting():
     ppi_result.write(ppi_header.upper()+"\n")
 
     ##write the header in interaction mapping output file
-    intmap_header = "pmid\tpsimi_id"
-    intmap_header += "\tinteractor1_accession\tinteractor1_name"
-    intmap_header += "\tinteractor2_accession\tinteractor2_name"
-    intmap_header += "\tinteractor_mapping_sequence\tinteractor_isoform_accession"
-    intmap_header += "\tinteractor_occurrence_start\tinteractor_occurrence_stop\tinteractor_occurrence_identity"
+    intmap_header = "reference_accession\tpsimi_id"
+    intmap_header += "\tnextprot_accession\tgene_name" ####INTMAP DIRE IS INT1 DANS ISO OK
+    intmap_header += "\tbiological_object_accession\tbiological_object_name"
+    intmap_header += "\tnextprot_mapping_sequence\tnextprot_isoform_accession"
+    intmap_header += "\tlocation_begin\tlocation_end"
+    intmap_header += "\tnextprot_occurrence_identity"
+
+    #extra values
+    intmap_header += "\tannotation_category"
+    intmap_header += "\tassigned_by"
+    intmap_header += "\tassigment_method"
+    intmap_header += "\tbiological_object_type"
+    intmap_header += "\tentry_accession"
+    intmap_header += "\tevidence_code"
+    intmap_header += "\tevidence_quality"
+    intmap_header += "\treference_database"
+    intmap_header += "\tresource_type"
+    intmap_header += "\tsource"
+    intmap_header += "\tannot_source_accession"
+
     ##for VH-PPI modify here
     # intmap_header += "\tUniprot_viral_species\tFTId\tChain_name"
     # intmap_header += "\tinterAC_propagation"
@@ -142,13 +175,13 @@ def integration_formatting():
         ppi_list.sort(key=lambda x: x.split("\t")[2]) #sort by int1
         ppi_list.sort(key=lambda x: x.split("\t")[0]) #sort by pmid, mandatory to compare lines by lines
         #print(ppi_list)
-
-        cpt = 0
+        
+        cpt_ppi = 0
 
         if (args.step == "psimi_unmerged"):
             for uniq_ppi in ppi_list: ##write the full list
-                cpt += 1
-                ppi_result.write(uniq_ppi+"\t"+str(cpt)+"\n")
+                cpt_ppi += 1
+                ppi_result.write(uniq_ppi+"\t"+str(cpt_ppi)+"\n")
 
 
         if (args.step == "psimi_merged"):
@@ -182,13 +215,13 @@ def integration_formatting():
                 #print(mykey)
 
                 if ( prevkey != mykey):
-                    cpt += 1
+                    cpt_ppi += 1
                     multiple_psimi = list(set(multiple_psimi))
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi)) 
                     myppi = prevpmid+"\t"+multiple_psimi_str+"\t"+prevint1+"\t"+prevname1+"\t"+prevint2+"\t"+prevname2
                     myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+prevint1
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
-                    ppi_result.write(myppi+"\t"+str(cpt)+"\n")
+                    ppi_result.write(myppi+"\t"+str(cpt_ppi)+"\n")
                     
                     prevpmid = mypmid
                     prevpsimi = mypsimi
@@ -206,14 +239,14 @@ def integration_formatting():
 
                 ##if last element of the list write it anyway
                 if uniq_ppi == ppi_list[-1]:
-                    cpt += 1
+                    cpt_ppi += 1
                     multiple_psimi = list(set(multiple_psimi))
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi))
                     myppi = mypmid+"\t"+multiple_psimi_str+"\t"+myint1+"\t"+myname1
                     myppi += "\t"+myint2+"\t"+myname2
                     myppi += "\tbinary-interaction\tENYO\tcurated\tPROTEIN\t"+myint1
                     myppi += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
-                    ppi_result.write(myppi+"\t"+str(cpt)+"\n")
+                    ppi_result.write(myppi+"\t"+str(cpt_ppi)+"\n")
 
         ##write intmap
         intmap_list = list(set(intmap_list)) ##save only one copy of homodimer self-interaction (interactor1 and interactor2 have both the same intmap region)
@@ -223,9 +256,12 @@ def integration_formatting():
         intmap_list.sort(key=lambda x: x.split("\t")[2])
         intmap_list.sort(key=lambda x: x.split("\t")[0])
 
+        cpt_intmap = 0
+
         if (args.step == "psimi_unmerged"):
             for uniq_intmap in intmap_list:
-                intmap_result.write(uniq_intmap+"\n")
+                cpt_intmap += 1
+                intmap_result.write(uniq_intmap+"\t"+str(cpt_intmap)+"\n")
 
         if (args.step == "psimi_merged"):
             previntmap = intmap_list[0] #first_line
@@ -265,12 +301,15 @@ def integration_formatting():
                 #print(mykey)
 
                 if ( prevkey != mykey):
+                    cpt_intmap += 1
                     multiple_psimi = list(set(multiple_psimi))
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi))
                     myintmap = prevpmid+"\t"+multiple_psimi_str+"\t"+prevint1+"\t"+prevname1
                     myintmap += "\t"+prevint2+"\t"+prevname2+"\t"+prevmapseq+"\t"+previsoform
                     myintmap += "\t"+prevoccstart+"\t"+prevoccstop+"\t"+prevoccidentity
-                    intmap_result.write(myintmap+"\n")
+                    myintmap += "\tinteraction-mapping\tENYO\tcurated\tPROTEIN\t"+myisoform.split("-")[0]
+                    myintmap += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
+                    intmap_result.write(myintmap+"\t"+cpt_intmap+"\n")
 
                     prevpmid = mypmid
                     prevpsimi = mypsimi
@@ -292,12 +331,15 @@ def integration_formatting():
                     multiple_psimi.append(mypsimi)
 
                 if uniq_intmap == intmap_list[-1]:
+                    cpt_intmap += 1
                     multiple_psimi = list(set(multiple_psimi))
                     multiple_psimi_str = ', '.join(map(str, multiple_psimi))
                     myintmap = mypmid+"\t"+multiple_psimi_str+"\t"+myint1+"\t"+myname1
                     myintmap += "\t"+myint2+"\t"+myname2+"\t"+mymapseq+"\t"+myisoform
                     myintmap += "\t"+myoccstart+"\t"+myoccstop+"\t"+myoccidentity
-                    intmap_result.write(myintmap+"\n")
+                    myintmap += "\tinteraction-mapping\tENYO\tcurated\tPROTEIN\t"+myisoform.split("-")[0]
+                    myintmap += "\tECO:0000353\tGOLD\tPubMed\tpublication\tENYO"
+                    intmap_result.write(myintmap+"\t"+str(cpt_intmap)+"\n")
                             
     ppi_result.close()
     intmap_result.close()

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2020/02/07 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -75,7 +74,7 @@ def select_one_isoform(raw_integrate_file, one_isoform_output):
         prev_stableid = first_ppi["stable_id"]
         prev_interactor1 = first_ppi["interactor1_accession"]
         prev_interactor2 = first_ppi["interactor2_accession"] 
-        print prev_intmap_interactor1+"\t"+prev_iso_interactor1+"\t"+prev_occstart_interactor1+"\t"+prev_occstop_interactor1
+        print(prev_intmap_interactor1+"\t"+prev_iso_interactor1+"\t"+prev_occstart_interactor1+"\t"+prev_occstop_interactor1)
         for ppi in reader:
 
             ##if there is no interaction mapping or if the stable id is different (so at least one interactor, pmid or psi-mi)

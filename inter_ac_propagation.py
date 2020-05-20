@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2020/03/03 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -32,7 +31,7 @@ def find_identical_proteins():
     url = 'https://api.nextprot.org/sparql'
     header = {'accept':'application/sparql-results+json', 'content-type': 'application/x-www-form-urlencoded'}
     query = {'query' : open('/home/vrattina/Documents/HH_PPi/human_identical_proteins.sparql', 'r').read()} #query results in neXtProt are symetric, the interactant will also be the interactor
-    payload = urllib.urlencode(query)
+    payload = urllib.parse.urlencode(query) #urllib.urlencode(query) in python2
     
     r = requests.post(url, payload, headers=header)
     request_dict = r.json()
@@ -44,8 +43,9 @@ def find_identical_proteins():
 
         identical_protein_AC2 = i["AC2"]["value"]
         identical_protein_name2 = i["sameseq2"]["value"]
-        
-        if identical_prot_dict.has_key(identical_protein_AC1):
+
+        #if identical_prot_dict.has_key(identical_protein_AC1): in python2
+        if identical_protein_AC1 in identical_prot_dict:
             identical_prot_dict[identical_protein_AC1]["partners"].append(identical_protein_AC2)
         else:
             identical_prot_dict[identical_protein_AC1]={}
@@ -61,7 +61,8 @@ def find_identical_proteins():
 def store_propagated_proteins(identical_prot_dict, current_ppi, interactor_AC, interactor_name, mapping_seq, isoform, occ_start, occ_stop, occ_identity, output_list):
     for key in identical_prot_dict:
         if key.startswith(interactor_AC): #avoid isoform specificity
-            if ( identical_prot_dict.has_key(isoform) ):
+            #if ( identical_prot_dict.has_key(isoform) ): in python2
+            if ( isoform in identical_prot_dict ):
                 #if the concerned isoform or no interaction mapping information, changes only the AC
                 for identical_prot in identical_prot_dict[isoform]["partners"]:
                     ppi_twin_protein = current_ppi

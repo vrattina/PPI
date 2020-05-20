@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2019/11/28 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -34,22 +33,24 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 ### Function to download every AC.tab in UniProt
 def wget_historic(AC, output_dir):
-    AC_history="https://www.uniprot.org/uniprot/"+AC+".tab?version=*"
+    AC_history = "https://www.uniprot.org/uniprot/"+AC+".tab?version=*"
+    
     ##time.sleep(10) #sleep could be useful to let time before to request URL but slow down the process
     tab_content = requests.get(AC_history)
-    tab_output=output_dir+"/history/"+AC+".tab"
-
+    tab_output = output_dir+"/history/"+AC+".tab"
+    
     try:
         tab_content.raise_for_status()
-       
-        with open(tab_output, 'wb') as ftab:
+        
+        with open(tab_output, 'w') as ftab:
             ftab.write(tab_content.text)
+            
         return AC+" downloaded"
         
     except requests.exceptions.RequestException as e:
         ##If failed once retry
         tab_content = requests.get(AC_history)
-        with open(tab_output, 'wb') as ftab:
+        with open(tab_output, 'w') as ftab:
             ftab.write(tab_content.text)
             return AC+" downloaded"
         ##If not correct again
@@ -96,12 +97,12 @@ def wget_ac(AC, output_dir, YYYY_MM):
         txt_content = requests.get(AC_txt) ##timeout = None option is a bad solution can take a long time
         try:
             txt_content.raise_for_status()
-            with open(output_dir_version+"/"+AC+".txt", 'wb') as ftxt:
+            with open(output_dir_version+"/"+AC+".txt", 'w') as ftxt:
                 ftxt.write(txt_content.text)
         except requests.exceptions.RequestException as e:
             ##if failed once retry just in case
             txt_content = requests.get(AC_txt)
-            with open(output_dir_version+"/"+AC+".txt", 'wb') as ftxt:
+            with open(output_dir_version+"/"+AC+".txt", 'w') as ftxt:
                 ftxt.write(txt_content.text)
                 return None
             ##if not correct again the page probably does not exist
@@ -134,7 +135,7 @@ def download_ac_in_uniprot_versions(flatten_ppi_tsv, YYYY_MM, output_dir, gethis
 
     AC_list = list(set(AC_list)) ##remove the duplicated AC
     #print "download order:\t"+str(AC_list)+"\n"
-    num_cores = (multiprocessing.cpu_count() - 2) #1
+    num_cores = int((multiprocessing.cpu_count() - 3)) #1
 
     status=[]
     if gethistoric == "True":
@@ -149,7 +150,7 @@ def download_ac_in_uniprot_versions(flatten_ppi_tsv, YYYY_MM, output_dir, gethis
         
         for i in status:
             if " failed" in i:
-                print i+" was not downloaded due to some troubles and will not be integrated in the study"
+                print(i+" was not downloaded due to some troubles and will not be integrated in the study")
                 ##can put into the log if needed ##here the AC does not exist in UniProt, fake AC
         logging.info("AC.tab (history) download process ends")
 

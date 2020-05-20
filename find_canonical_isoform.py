@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2020/04/29 - SIB & Enyo Pharma
 
 import sys #I/O files

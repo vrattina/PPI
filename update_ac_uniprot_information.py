@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #AUTHOR: RATTINA Vimel - 2020/01/08 - SIB & Enyo Pharma
 
 import sys #I/O files
@@ -85,12 +84,13 @@ def uniq_ac(VP_dict, HP_dict):
     VP_AC=[]
     HP_AC=[]
     ##For VP do not take the polyprotein key but the AC value
-    for AC in VP_dict.values():
+    #for AC in VP_dict.values(): #python2
+    for AC in iter(VP_dict):
         VP_AC.append(AC["Vprot_accession"])
     VP_AC = list(set(VP_AC)) #uniq AC
 
     ##For HP, retrive keys because they own AC and isoform
-    HP_AC += HP_dict.keys() #merge lists
+    HP_AC +=  HP_dict.keys() #[*HP_dict] in python2 #merge lists
     HP_AC = list(set(HP_AC))
 
     return VP_AC, HP_AC
@@ -152,30 +152,32 @@ def get_sequence_isoform(ACpath, isoformAC, YYYY_MM):
 
 
 ###Function adding information in VP or HP dictionnary concerning gene names and protein sequence from both UniProt version and if there is changes between versions or not
-def update_changes_status(P_dict, isoform, sequence_changes, genename_changes, name_enyo, name_nextprot, sequence_enyo, sequence_nextprot):
-    if ("Vprot_accession" in P_dict.values()[0]):
-        for i in P_dict.values():
-            if i["Vprot_accession"] == isoform:
-                i["Sequence_changes"] = sequence_changes
-                i["Genename_changes"] = genename_changes
-                i["Genename_ENYO"] = name_enyo
-                i["Genename_neXtProt"] = name_nextprot
-                i["Sequence_ENYO"] = sequence_enyo
-                i["Sequence_neXtProt"] = sequence_nextprot
+def update_changes_status(P_dict, isoform, sequence_changes, genename_changes, name_enyo, name_nextprot, sequence_enyo, sequence_nextprot, species):
+    if (species == "viral"):
+        #for i in P_dict.values(): #python2
+        for i in iter(P_dict):
+            if P_dict[i]["Vprot_accession"] == isoform:
+                P_dict[i]["Sequence_changes"] = sequence_changes
+                P_dict[i]["Genename_changes"] = genename_changes
+                P_dict[i]["Genename_ENYO"] = name_enyo
+                P_dict[i]["Genename_neXtProt"] = name_nextprot
+                P_dict[i]["Sequence_ENYO"] = sequence_enyo
+                P_dict[i]["Sequence_neXtProt"] = sequence_nextprot
 
-    if ("Hprot_accession" in P_dict.values()[0]):
-        for i in P_dict.values():
-            if i["Hprot_accession"] == isoform:
-                i["Sequence_changes"] = sequence_changes
-                i["Genename_changes"] = genename_changes
-                i["Genename_ENYO"] = name_enyo
-                i["Genename_neXtProt"] = name_nextprot
-                i["Sequence_ENYO"] = sequence_enyo
-                i["Sequence_neXtProt"] = sequence_nextprot
+    if (species == "human"):
+        #for i in P_dict.values(): #python2
+        for i in iter(P_dict):
+            if P_dict[i]["Hprot_accession"] == isoform:
+                P_dict[i]["Sequence_changes"] = sequence_changes
+                P_dict[i]["Genename_changes"] = genename_changes
+                P_dict[i]["Genename_ENYO"] = name_enyo
+                P_dict[i]["Genename_neXtProt"] = name_nextprot
+                P_dict[i]["Sequence_ENYO"] = sequence_enyo
+                P_dict[i]["Sequence_neXtProt"] = sequence_nextprot
 
 
 ###Function comparing gene names and sequence of one AC from two UniProt versions and updating the protein dictionnary
-def compare_ac_versions(isoform_name, P_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot):
+def compare_ac_versions(isoform_name, P_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, species):
     if '-' in isoform_name:
         canonical_name=isoform_name.split('-')[0]
     else:
@@ -217,7 +219,7 @@ def compare_ac_versions(isoform_name, P_dict, outputfolder, YYYY_MM_enyo, YYYY_M
             genename_changes="no"
 
         ##add information about gene name, sequence and the changes status in the corresponding dictionnary
-        update_changes_status(P_dict, isoform_name, sequence_changes, genename_changes, clean_name_enyo, clean_name_nextprot, sequence_enyo, sequence_nextprot)
+        update_changes_status(P_dict, isoform_name, sequence_changes, genename_changes, clean_name_enyo, clean_name_nextprot, sequence_enyo, sequence_nextprot, species)
     #print P_dict
 
 
@@ -283,17 +285,18 @@ def update_ac_uniprot_information(flatfile, outputfolder, YYYY_MM_enyo, YYYY_MM_
     ##Compare two UniProt versions
     logging.info("Comparing AC between "+YYYY_MM_enyo+ " and "+YYYY_MM_nextprot+" for viral proteins")
     for i in VP_AC:
-        compare_ac_versions(i, VP_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot)
+        compare_ac_versions(i, VP_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, "viral")
     logging.info("Viral protein comparison ends")
 
     logging.info("Comparing AC between "+YYYY_MM_enyo+ " and "+YYYY_MM_nextprot+" for human proteins")
     for i in HP_AC:
-        compare_ac_versions(i, HP_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot)
+        compare_ac_versions(i, HP_dict, outputfolder, YYYY_MM_enyo, YYYY_MM_nextprot, "human")
     logging.info("Human protein comparison ends")
 
     ##Add viral species + chain name and FTId if available for VP
     logging.info("Adding species name for viral proteins and chain name and PRO id if corresponding to the positions")
-    for i in VP_dict.values():
+    #for i in VP_dict.values(): #python2
+    for i in iter(VP_dict):
         #print i["Vprot_accession"]+" "+i['Vprot_start']+" "+i['Vprot_stop']
         AC_nextprot = outputfolder+"/"+YYYY_MM_nextprot+"/"+i["Vprot_accession"]+".txt" ##Version of neXtProt, data will be integrated in it
         if os.path.exists(AC_nextprot):
@@ -301,10 +304,10 @@ def update_ac_uniprot_information(flatfile, outputfolder, YYYY_MM_enyo, YYYY_MM_
             get_species_chain_ftid(AC_nextprot, i)
     logging.info("Viral protein information completion ends")
 
-    with open(vp_dict_file, "w") as viral_file:
+    with open(vp_dict_file, "wb") as viral_file:
         pickle.dump(VP_dict, viral_file)
 
-    with open(hp_dict_file, "w") as human_file:
+    with open(hp_dict_file, "wb") as human_file:
         pickle.dump(HP_dict, human_file)
 
     logging.info("AC comparison between "+YYYY_MM_enyo+ " and "+YYYY_MM_nextprot+" ends")
@@ -317,5 +320,5 @@ if len(sys.argv) < 7:
     sys.exit('Usage: %s <flat_file> <output_folder> <YYYY_MM_enyo> <uniprotv_nextprot_folder> <vp_dict_file> <hp_dict_file>\n<flat_file>: flatten json file from ENYO Pharma\n<outputfolder>: pathway of the result folder which contains the two repositories with AC.txt under 2 UniProt version\n<YYYY_MM_enyo>: UniProt version used by ENYO e.g. 2019_01\n<YYYY_MM_nextprot>: UniProt version used by neXtProt e.g. 2020_01\n<vp_dict_file>: file where the viral protein dictionnary object is stored\t<hp_dict_file>: file where the human protein dictionnary object is stored\n' % sys.argv[0])
 
 if __name__ == "__main__":
-    update_ac_uniprot_information(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    update_ac_uniprot_information(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
     #./update_ac_uniprot_information.py vinland_flatfile.tsv results/2019_01/ results/2019_09/
